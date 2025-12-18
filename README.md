@@ -1,17 +1,14 @@
 
 # Learning Assistant + Markdown Formatter (LangGraph)
 
-This folder contains a small pipeline:
+## Usage
+
+Create an issue with the title describing what you want to learn. You can add additional details in the issue body, such as what you already know or what you want to achieve. Assign the ai-plan label to the issue; this will automatically create a learning plan in a separate issue.
+
+## This folder contains a small pipeline:
 
 1. **Learning assistant**: turns a user request (topic) into a structured `Topic` (subtopics, exercises, verification steps).
 2. **Markdown assistant**: returns the *same `Topic` shape*, but rewrites the text fields so they are Markdown-ready for GitHub issue bodies.
-
-This is useful when you want:
-
-- a **GitHub issue** for the main topic using `topic.description` as the issue body
-- **sub-issues** per subtopic using `subtopic.description`, `subtopic.verification_steps`, and exercises as Markdown
-
-The nodes are wired together using **LangGraph** in `graph.py`.
 
 ## Environment variables
 
