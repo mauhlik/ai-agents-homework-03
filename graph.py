@@ -22,6 +22,7 @@ from github_issues import (
 class GraphState(TypedDict, total=False):
 	issue_title: str
 	issue_body: str
+	original_issue_number: Optional[int]
 	style_guide: Optional[str]
 
 	# GitHub settings
@@ -86,6 +87,31 @@ async def _github_issues_node(state: GraphState) -> GraphState:
 		labels=topic_draft.labels,
 	)
 
+	# If invoked from an existing issue, link the new topic issue back to it.
+	original = state.get("original_issue_number")
+	if original:
+		try:
+			await client.create_issue_comment(
+				owner=owner,
+				repo=repo,
+				issue_number=original,
+				body=f"Created learning plan: #{created_topic.number} ({created_topic.url})",
+			)
+		except Exception:
+			# Linking is best-effort; issue creation should still succeed.
+			pass
+
+		# Also add a backlink in the created issue body for visibility.
+		try:
+			await client.update_issue_body_prepend(
+				owner=owner,
+				repo=repo,
+				issue_number=created_topic.number,
+				prepend=f"Original issue: #{original}\n\n",
+			)
+		except Exception:
+			pass
+
 	created_subs = []
 	for d in sub_drafts:
 		body = f"Parent: #{created_topic.number}\n\n{d.body}" if d.body else f"Parent: #{created_topic.number}"
@@ -132,6 +158,7 @@ async def run_graph(
 	*,
 	issue_title: str,
 	issue_body: str,
+	original_issue_number: Optional[int] = None,
 	style_guide: Optional[str] = None,
 	github_owner: Optional[str] = None,
 	github_repo: Optional[str] = None,
@@ -143,6 +170,7 @@ async def run_graph(
 		{
 			"issue_title": issue_title,
 			"issue_body": issue_body,
+			"original_issue_number": original_issue_number,
 			"style_guide": style_guide,
 			"github_owner": github_owner,
 			"github_repo": github_repo,
@@ -157,6 +185,7 @@ async def run_graph_with_github(
 	*,
 	issue_title: str,
 	issue_body: str,
+	original_issue_number: Optional[int] = None,
 	style_guide: Optional[str] = None,
 	github_owner: str,
 	github_repo: str,
@@ -168,6 +197,7 @@ async def run_graph_with_github(
 		{
 			"issue_title": issue_title,
 			"issue_body": issue_body,
+			"original_issue_number": original_issue_number,
 			"style_guide": style_guide,
 			"github_owner": github_owner,
 			"github_repo": github_repo,

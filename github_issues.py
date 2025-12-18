@@ -168,3 +168,58 @@ class GitHubClient:
         async with httpx.AsyncClient(timeout=self.timeout_s) as client:
             r = await client.post(url, json=payload, headers=headers)
             r.raise_for_status()
+
+
+    async def create_issue_comment(
+        self,
+        *,
+        owner: str,
+        repo: str,
+        issue_number: int,
+        body: str,
+    ) -> None:
+        """Create a comment on an existing issue.
+
+        API: POST /repos/{owner}/{repo}/issues/{issue_number}/comments
+        """
+        url = f"{self.api_base}/repos/{owner}/{repo}/issues/{issue_number}/comments"
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        payload = {"body": body}
+
+        async with httpx.AsyncClient(timeout=self.timeout_s) as client:
+            r = await client.post(url, json=payload, headers=headers)
+            r.raise_for_status()
+
+
+    async def update_issue_body_prepend(
+        self,
+        *,
+        owner: str,
+        repo: str,
+        issue_number: int,
+        prepend: str,
+    ) -> None:
+        """Prepend text to the issue body (best-effort).
+
+        This performs a GET to retrieve the current body, then PATCHes the issue.
+        """
+        issue_url = f"{self.api_base}/repos/{owner}/{repo}/issues/{issue_number}"
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+
+        async with httpx.AsyncClient(timeout=self.timeout_s) as client:
+            gr = await client.get(issue_url, headers=headers)
+            gr.raise_for_status()
+            data = gr.json()
+            current = data.get("body") or ""
+            new_body = f"{prepend}{current}" if current else prepend
+
+            pr = await client.patch(issue_url, json={"body": new_body}, headers=headers)
+            pr.raise_for_status()

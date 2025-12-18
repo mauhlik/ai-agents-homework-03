@@ -13,6 +13,13 @@ async def main():
     parser.add_argument("--issue-title", type=str, required=True)
     parser.add_argument("--issue-body", type=str, required=True)
     parser.add_argument(
+        "--issue-id",
+        type=int,
+        required=False,
+        default=None,
+        help="Optional original GitHub issue number to link the created issues back to",
+    )
+    parser.add_argument(
         "--style-guide",
         type=str,
         required=False,
@@ -43,6 +50,7 @@ async def main():
         md, gh = await run_graph_with_github(
             issue_title=args.issue_title,
             issue_body=args.issue_body,
+			original_issue_number=args.issue_id,
             style_guide=args.style_guide,
             github_owner=args.github_owner,
             github_repo=args.github_repo,
@@ -52,6 +60,7 @@ async def main():
         md = await run_graph(
             issue_title=args.issue_title,
             issue_body=args.issue_body,
+			original_issue_number=args.issue_id,
             style_guide=args.style_guide,
         )
 
