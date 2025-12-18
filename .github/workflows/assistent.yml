@@ -46,3 +46,5 @@ jobs:
 
       - name: Run the Learning Assistent
         run: uv run run_graph.py --issue-id "${{ github.event.issue.number }}" --issue-title "${{ github.event.issue.title }}" --issue-body "${{ github.event.issue.body }}" --create-github-issues --github-owner "${{ github.event.repository.owner.login }}" --github-repo "${{ github.event.repository.name }}" --no-dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
