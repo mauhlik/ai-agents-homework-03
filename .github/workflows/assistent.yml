@@ -45,4 +45,4 @@ jobs:
         run: uv sync --locked
 
       - name: Run the Learning Assistent
-        run: uv run run_graph.py --issue-id "${{ github.event.issue.number }}" --issue-title "${{ github.event.issue.title }}" --issue-body "${{ github.event.issue.body }}" --create-github-issues --github-owner "${{ github.event.organization }}" --github-repo "${{ github.event.repository}}" --no-dry-run
+        run: uv run run_graph.py --issue-id "${{ github.event.issue.number }}" --issue-title "${{ github.event.issue.title }}" --issue-body "${{ github.event.issue.body }}" --create-github-issues --github-owner "${{ github.event.repository.owner.login }}" --github-repo "${{ github.event.repository.name }}" --no-dry-run
