@@ -1,0 +1,49 @@
+name: Assistent Workflow
+run-name: Assistent Workflow for label ${{ github.event.label.name }}
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+  contents: read
+  id-token: write
+
+jobs:
+  assistent:
+    runs-on: ubuntu-24.04
+    if: contains(github.event.label.name, 'ai-plan')
+    environment: default
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up WireGuard Connection
+        uses: niklaskeerl/easy-wireguard-action@fdecd3aabde0060ec80f89aa03070ae0705fedba # v2
+        with:
+          WG_CONFIG_FILE: ${{ secrets.WG_CONF }}
+
+      - uses: Infisical/secrets-action@8802effbe453d0576cd923567dcc2c97a1f54058 # v1.0.15
+        with:
+          method: "oidc"
+          identity-id: ${{ secrets.INFISICAL_IDENTITY_ID }}
+          domain: ${{ secrets.INFISICAL_DOMAIN }}
+          env-slug: "prod"
+          project-slug: ${{ secrets.INFISICAL_PROJECT }}
+          oidc-audience: "${{ github.server_url }}/${{ github.workflow_ref }}"
+          secret-path: "/AI-Course-Learning-Assistent"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
+
+      - name: Install the project
+        run: uv sync --locked
+
+      - name: Run the Learning Assistent
+        run: uv run run_graph.py --issue-title "${{ github.event.issue.title }}" --issue-body "${{ github.event.issue.body }}" \
+          --create-github-issues --github-owner "${{ github.event.organization }}" --github-repo "${{ github.event.repository}}" --no-dry-run
